@@ -1,1 +1,1 @@
-nasm -f bin boot.asm -o boot.bin && qemu-system-x86_64 boot.bin
+nasm -f bin boot/boot.asm -o boot/boot.bin && qemu-system-x86_64 -hda boot/boot.bin

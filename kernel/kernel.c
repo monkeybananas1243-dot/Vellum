@@ -76,7 +76,7 @@ void clear_screen() {
     char* vga = (char*)0xB8000;
     for (int i = 0; i < 80 * 25 * 2; i += 2) {
         vga[i] = ' ';
-        vga[i+1] = 0x3F;
+        vga[i+1] = 0x0F;
     }
 }
 

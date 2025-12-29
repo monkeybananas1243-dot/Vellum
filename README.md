@@ -31,6 +31,7 @@ Open a Command Prompt, navigate to the root of the project, and run:
 
 ```batch
 cd bat
+setup
 build
 ```
 

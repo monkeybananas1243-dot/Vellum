@@ -18,6 +18,7 @@ all: $(IMAGE)
 
 $(IMAGE): $(BOOT_BIN) $(KERNEL_BIN)
 	cat $(BOOT_BIN) $(KERNEL_BIN) > $(IMAGE)
+	truncate -s +32K $(IMAGE)
 
 $(BOOT_BIN): boot/boot.asm
 	$(AS) -f bin $< -o $@
@@ -35,7 +36,7 @@ utils/%.o: utils/%.asm
 	$(AS) -f elf32 $< -o $@
 
 run: $(IMAGE)
-	$(QEMU) -drive format=raw,file=$(IMAGE)
+	$(QEMU) -drive format=raw,file=$(IMAGE),index=0,if=floppy
 
 clean:
 	rm -f $(BOOT_BIN) $(KERNEL_BIN) $(OBJS) $(IMAGE)

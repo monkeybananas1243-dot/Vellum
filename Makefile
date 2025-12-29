@@ -8,12 +8,13 @@ IMAGE = peltOS.img
 BOOT_BIN = boot/boot_sect.bin
 KERNEL_BIN = kernel/kernel.bin
 
-OBJS = kernel/kernel_entry.o \
-       kernel/kernel.o \
-       utils/get_char.o \
-       utils/io.o
+C_SOURCES = $(wildcard kernel/*.c utils/*.c)
+ASM_SOURCES = $(wildcard utils/*.asm)
 
-CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -fno-asynchronous-unwind-tables -nostdlib
+OBJ = ${C_SOURCES:.c=.o} ${ASM_SOURCES:.asm=.o}
+OBJS_FINAL = kernel/kernel_entry.o $(filter-out kernel/kernel_entry.o, $(OBJ))
+
+CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -fno-asynchronous-unwind-tables -nostdlib -Ikernel -Iutils/include
 
 all: $(IMAGE)
 
@@ -24,17 +25,21 @@ $(IMAGE): $(BOOT_BIN) $(KERNEL_BIN)
 $(BOOT_BIN): boot/boot.asm
 	$(AS) -f bin $< -o $@
 
-$(KERNEL_BIN): $(OBJS)
+$(KERNEL_BIN): $(OBJS_FINAL)
 	$(LD) -T linker.ld $^ -o $@ --oformat binary
 
 kernel/kernel_entry.o: kernel/kernel_entry.asm
 	$(AS) -f elf32 $< -o $@
 
-kernel/kernel.o: kernel/kernel.c
+kernel/%.o: kernel/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+utils/%.o: utils/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 utils/%.o: utils/%.asm
 	$(AS) -f elf32 $< -o $@
 
 clean:
-	rm -f $(BOOT_BIN) $(KERNEL_BIN) $(OBJS) $(IMAGE)
+	rm -rf $(BOOT_BIN) $(KERNEL_BIN) $(IMAGE)
+	find . -name "*.o" -type f -delete

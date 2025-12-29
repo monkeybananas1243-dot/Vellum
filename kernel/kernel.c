@@ -15,11 +15,10 @@ const char ascii_table[] = {
 void update_cursor(int x, int y);
 void clear_screen();
 void k_print(char* str);
+void check_scancode();
 void main();
 
-void _start() {
-    main();
-}
+void _start() {main();}
 
 void main() {
     cursor_x = 0;
@@ -36,31 +35,11 @@ void main() {
     k_print(" |_|    |______|______|    |_|     \\____/|_____/ \n");
     
     k_print("\n PELT OS v1.0\n");
-    k_print("----------------------------------------------\n");
-    k_print("-># ");
+    k_print("----------------------------------------------");
+    k_print("\n-># ");
 
     while(1) {
-        unsigned char scancode = get_char();
-        
-        if (scancode < 0x80) {
-            if (scancode == 0x4B) { // LEFT
-                if (cursor_x > shell_limit) cursor_x--;
-            } 
-            else if (scancode == 0x4D) { // RIGHT
-                if (cursor_x < 79) cursor_x++;
-            }
-            else {
-                char letter = ascii_table[scancode];
-                if (letter == '\n') {
-                    k_print("\n-># ");
-                } 
-                else if (letter != 0) {
-                    char str[2] = {letter, '\0'};
-                    k_print(str);
-                }
-            }
-        }
-        update_cursor(cursor_x, cursor_y);
+        check_scancode();
     }
 }
 
@@ -82,19 +61,27 @@ void clear_screen() {
 
 void k_print(char* str) {
     char* vga = (char*)0xB8000;
+    
     for (int i = 0; str[i] != '\0'; i++) {
-        if (str[i] == '\n') {
-            cursor_x = 0;
-            cursor_y++;
-        }
+        // Newline
+        if (str[i] == '\n') {cursor_x = 0; cursor_y++;}
+        // Backspace
         else if (str[i] == '\b') {
-            if (cursor_x > shell_limit) {
-                cursor_x--;
-                int offset = (cursor_y * 80 + cursor_x) * 2;
-                vga[offset] = ' ';
-                vga[offset + 1] = 0x0F;
-            }
-        } 
+            // shell_limit
+            if (cursor_y == 0 && cursor_x <= shell_limit) continue;
+
+            cursor_x--;
+
+            // Wrapping back
+            if (cursor_x < 0 && cursor_y > 0) {cursor_y--; cursor_x = 79;} 
+            else if (cursor_x < 0 && cursor_y == 0) {cursor_x = 0;}
+
+            // Erase the character at the new cursor position
+            int offset = (cursor_y * 80 + cursor_x) * 2;
+            vga[offset] = ' ';
+            vga[offset + 1] = 0x0F;
+        }
+        // Normal characters
         else {
             int offset = (cursor_y * 80 + cursor_x) * 2;
             vga[offset] = str[i];
@@ -102,16 +89,30 @@ void k_print(char* str) {
             cursor_x++;
         }
 
-        if (cursor_x >= 80) {
-            cursor_x = 0;
-            cursor_y++;
-        }
+        // Forward wrapping
+        if (cursor_x >= 80) {cursor_x = 0; cursor_y++;}
 
-        if (cursor_y >= 25) {
-            clear_screen();
-            cursor_y = 0;
-            cursor_x = 0;
-        }
+        // Screen overflow
+        if (cursor_y >= 25) {clear_screen(); cursor_y = 0; cursor_x = 0;} 
+    }
+    update_cursor(cursor_x, cursor_y);
+}
+
+void check_scancode() {
+    unsigned char scancode = get_char();
+
+    if (scancode > 0x80) return;
+    else if (scancode == 0x48) return; // Up
+    else if (scancode == 0x50) return; // Down
+
+    if (scancode == 0x4B) { if (cursor_x > shell_limit) {cursor_x--;} } // Left
+
+    else if (scancode == 0x4D) { if (cursor_x < 79) {cursor_x++;} } // Right
+    else if (scancode == 0x3F) {clear_screen(); cursor_y = 0; cursor_x = 0; k_print("\n-># ");} // F5
+    else {
+        char letter = ascii_table[scancode];
+        if (letter == '\n') {k_print("\n-># ");} // Enter
+        else if (letter != 0) {char str[2] = {letter, '\0'}; k_print(str);} // Normal characters
     }
     update_cursor(cursor_x, cursor_y);
 }

@@ -1,3 +1,5 @@
+# **RIGHT NOW THIS DOESN'T WORK.**
+
 # **PeltOS**
 This is PeltOS, a custom-built operating system focused on low-level hardware interaction
 and kernel development. It currently serves as a foundational environment, booting directly

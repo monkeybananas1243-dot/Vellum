@@ -1,4 +1,6 @@
-.vscode
-*.bin
 *.o
+*.bin
 *.img
+temp.img
+padding.bin
+dist/

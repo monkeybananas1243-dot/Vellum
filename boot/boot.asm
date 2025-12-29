@@ -1,7 +1,7 @@
 [BITS 16]
 [org 0x7c00]
 
-KERNEL_OFFSET equ 0x7E00
+KERNEL_OFFSET equ 0x1000
 
 _start:
     mov [BOOT_DRIVE], dl

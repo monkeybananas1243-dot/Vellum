@@ -1,13 +1,14 @@
-AS = nasm
-CC = i686-elf-gcc
-LD = i686-elf-ld
+DIST_BIN = $(CURDIR)/../dist/bin/
+AS = $(DIST_BIN)nasm
+CC = $(DIST_BIN)i686-elf-gcc
+LD = $(DIST_BIN)i686-elf-ld
 QEMU = qemu-system-i386
 
 IMAGE = peltOS.img
 BOOT_BIN = boot/boot_sect.bin
 KERNEL_BIN = kernel/kernel.bin
 
-OBJS = kernel/entry.o \
+OBJS = kernel/kernel_entry.o \
        kernel/kernel.o \
        utils/get_char.o \
        utils/io.o
@@ -18,7 +19,7 @@ all: $(IMAGE)
 
 $(IMAGE): $(BOOT_BIN) $(KERNEL_BIN)
 	cat $(BOOT_BIN) $(KERNEL_BIN) > $(IMAGE)
-	truncate -s +32K $(IMAGE)
+	truncate -s 32768 $(IMAGE)
 
 $(BOOT_BIN): boot/boot.asm
 	$(AS) -f bin $< -o $@
@@ -26,7 +27,7 @@ $(BOOT_BIN): boot/boot.asm
 $(KERNEL_BIN): $(OBJS)
 	$(LD) -T linker.ld $^ -o $@ --oformat binary
 
-kernel/entry.o: kernel/entry.asm
+kernel/kernel_entry.o: kernel/kernel_entry.asm
 	$(AS) -f elf32 $< -o $@
 
 kernel/kernel.o: kernel/kernel.c
@@ -34,9 +35,6 @@ kernel/kernel.o: kernel/kernel.c
 
 utils/%.o: utils/%.asm
 	$(AS) -f elf32 $< -o $@
-
-run: $(IMAGE)
-	$(QEMU) -drive format=raw,file=$(IMAGE),index=0,if=floppy
 
 clean:
 	rm -f $(BOOT_BIN) $(KERNEL_BIN) $(OBJS) $(IMAGE)

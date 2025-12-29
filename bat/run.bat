@@ -1,7 +1,7 @@
 @echo off
 
-cd /d "%~dp0"
+set PATH=%~dp0..\dist\bin;%PATH%
 
-call env.bat
+qemu-system-i386 -drive format=raw,file=../peltOS.img
 
-qemu-system-i386 -drive format=raw,file=..\peltOS.img
+pause

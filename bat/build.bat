@@ -1,55 +1,45 @@
 @echo off
 setlocal enabledelayedexpansion
+cd /d %~dp0..
 
-set PATH=%~dp0..\dist\bin;%PATH%
+set INC_PATH=%cd%\src\utils\include
+set KERN_PATH=%cd%\src\kernel
+set PATH=%cd%\dist\bin;%PATH%
 
 set CC=i686-elf-gcc.exe
 set AS=nasm.exe
 set LD=i686-elf-ld.exe
 
-set CFLAGS=-m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -I../utils/include -I../kernel
-set LDFLAGS=-T ..\linker.ld --oformat binary
+set CFLAGS=-m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -I"%INC_PATH%" -I"%KERN_PATH%"
+set LDFLAGS=-T linker.ld --oformat binary
 
-echo Cleaning old files...
-del ..\boot\*.bin ..\kernel\*.o ..\kernel\*.bin ..\utils\*.o ..\peltOS.img 2>nul
+if exist bin rd /s /q bin
+mkdir bin\boot bin\kernel bin\utils
 
-echo Assembling Bootloader...
-%AS% -f bin ..\boot\boot.asm -o ..\boot\boot_sect.bin
+%AS% -f bin src/boot/boot.asm -o bin/boot/boot_sect.bin
 
-echo Compiling Kernel Entry...
-set OBJS=..\kernel\kernel_entry.o
-%AS% -f elf32 ..\kernel\kernel_entry.asm -o ..\kernel\kernel_entry.o
+set OBJS=bin/kernel/kernel_entry.o
 
-echo Compiling C files in Kernel...
-for /r "..\kernel" %%f in (*.c) do (
-    echo Compiling %%~nxf
-    %CC% %CFLAGS% -c "%%f" -o "%%~dpnf.o"
-    set OBJS=!OBJS! "%%~dpnf.o"
+for /r "src/kernel" %%f in (*.c) do (
+    %CC% %CFLAGS% -c "%%f" -o "bin/kernel/%%~nf.o"
+    set OBJS=!OBJS! bin/kernel/%%~nf.o
 )
 
-echo Compiling C files in Utils...
-for /r "..\utils" %%f in (*.c) do (
-    echo Compiling %%~nxf
-    %CC% %CFLAGS% -c "%%f" -o "%%~dpnf.o"
-    set OBJS=!OBJS! "%%~dpnf.o"
+for /r "src/utils" %%f in (*.c) do (
+    %CC% %CFLAGS% -c "%%f" -o "bin/utils/%%~nf.o"
+    set OBJS=!OBJS! bin/utils/%%~nf.o
 )
 
-echo Assembling ASM files in Utils...
-for /r "..\utils" %%f in (*.asm) do (
-    echo Assembling %%~nxf
-    %AS% -f elf32 "%%f" -o "%%~dpnf.o"
-    set OBJS=!OBJS! "%%~dpnf.o"
+for /r "src/utils" %%f in (*.asm) do (
+    %AS% -f elf32 "%%f" -o "bin/utils/%%~nf.o"
+    set OBJS=!OBJS! bin/utils/%%~nf.o
 )
 
-echo Linking Kernel...
-%LD% %LDFLAGS% %OBJS% -o ..\kernel\kernel.bin
+echo.
+echo Objects being linked: %OBJS%
+echo.
 
-echo Creating OS Image...
-copy /y /b ..\boot\boot_sect.bin + ..\kernel\kernel.bin ..\peltOS.img
+%LD% %LDFLAGS% %OBJS% -o bin/kernel/kernel.bin
 
-fsutil file createnew padding.bin 32768 >nul
-copy /b ..\peltOS.img + padding.bin ..\peltOS.img >nul
-del padding.bin
-
-echo Done!
+copy /y /b bin\boot\boot_sect.bin + bin\kernel\kernel.bin bin\peltOS.img
 pause

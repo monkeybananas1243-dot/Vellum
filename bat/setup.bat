@@ -1,5 +1,8 @@
 @echo off
-mkdir "%~dp0..\boot" 2>nul
-mkdir "%~dp0..\kernel" 2>nul
-mkdir "%~dp0..\utils" 2>nul
-echo Folders initialized.
+
+if not exist bin mkdir bin
+if not exist bin\boot mkdir bin\boot
+if not exist bin\kernel mkdir bin\kernel
+if not exist bin\utils mkdir bin\utils
+
+pause

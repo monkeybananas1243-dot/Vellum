@@ -1,45 +1,39 @@
-DIST_BIN = $(CURDIR)/../dist/bin/
-AS = $(DIST_BIN)nasm
-CC = $(DIST_BIN)i686-elf-gcc
-LD = $(DIST_BIN)i686-elf-ld
-QEMU = qemu-system-i386
 
-IMAGE = peltOS.img
-BOOT_BIN = boot/boot_sect.bin
-KERNEL_BIN = kernel/kernel.bin
+CC = i686-elf-gcc
+AS = nasm
+LD = i686-elf-ld
 
-C_SOURCES = $(wildcard kernel/*.c utils/*.c)
-ASM_SOURCES = $(wildcard utils/*.asm)
+CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib \
+         -Isrc/utils/include -Isrc/kernel
+LDFLAGS = -T linker.ld --oformat binary
 
-OBJ = ${C_SOURCES:.c=.o} ${ASM_SOURCES:.asm=.o}
-OBJS_FINAL = kernel/kernel_entry.o $(filter-out kernel/kernel_entry.o, $(OBJ))
+C_SOURCES = $(wildcard src/kernel/*.c src/utils/*.c)
+ASM_SOURCES = $(wildcard src/utils/*.asm)
+OBJ = bin/kernel/kernel_entry.o $(C_SOURCES:src/%.c=bin/%.o) $(ASM_SOURCES:src/%.asm=bin/%.o)
 
-CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -fno-asynchronous-unwind-tables -nostdlib -Ikernel -Iutils/include
+all: bin/peltOS.img
 
-all: $(IMAGE)
+bin/peltOS.img: bin/boot/boot_sect.bin bin/kernel/kernel.bin
+	cat $^ > $@
 
-$(IMAGE): $(BOOT_BIN) $(KERNEL_BIN)
-	cat $(BOOT_BIN) $(KERNEL_BIN) > $(IMAGE)
-	truncate -s 32768 $(IMAGE)
-
-$(BOOT_BIN): boot/boot.asm
+bin/boot/boot_sect.bin: src/boot/boot.asm
+	@mkdir -p bin/boot
 	$(AS) -f bin $< -o $@
 
-$(KERNEL_BIN): $(OBJS_FINAL)
-	$(LD) -T linker.ld $^ -o $@ --oformat binary
+bin/kernel/kernel.bin: $(OBJ)
+	$(LD) $(LDFLAGS) -o $@ $^
 
-kernel/kernel_entry.o: kernel/kernel_entry.asm
+bin/kernel/kernel_entry.o: src/kernel/kernel_entry.asm
+	@mkdir -p bin/kernel
 	$(AS) -f elf32 $< -o $@
 
-kernel/%.o: kernel/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-utils/%.o: utils/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-utils/%.o: utils/%.asm
+bin/utils/%.o: src/utils/%.asm
+	@mkdir -p bin/utils
 	$(AS) -f elf32 $< -o $@
+
+bin/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(BOOT_BIN) $(KERNEL_BIN) $(IMAGE)
-	find . -name "*.o" -type f -delete
+	rm -rf bin/*.bin bin/*.o bin/*.img bin/boot bin/kernel bin/utils

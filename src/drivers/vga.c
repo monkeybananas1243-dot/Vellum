@@ -43,15 +43,17 @@ void printk_char(char c) {
 
     if (c == '\n') {cursor_x = 0; cursor_y++;}
 
-    else if (c == '\b' && (cursor_x > shell_limit || cursor_y > 0)) {
-        if (cursor_x > 0) {cursor_x--;}
-        else if (cursor_y > 0) {cursor_y--; cursor_x = VGA_WIDTH - 1;}
-        
-        int offset = (cursor_y * VGA_WIDTH + cursor_x) * 2;
-        vga[offset] = ' ';
-        vga[offset + 1] = WHITE_ON_BLACK;
+    else if (c == '\b') {
+        if (cursor_x > shell_limit && cursor_y > 0) {
+            if (cursor_x > 0) {cursor_x--;}
+            else if (cursor_y > 0) {cursor_y--; cursor_x = VGA_WIDTH - 1;}
+            
+            int offset = (cursor_y * VGA_WIDTH + cursor_x) * 2;
+            vga[offset] = ' ';
+            vga[offset + 1] = WHITE_ON_BLACK;
+        }
     }
-    
+
     else {
         int offset = (cursor_y * VGA_WIDTH + cursor_x) * 2;
         vga[offset] = c;

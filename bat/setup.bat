@@ -1,5 +1,7 @@
 @echo off
 
+cd /d "%~dp0.."
+
 if not exist bin mkdir bin
 if not exist bin\boot mkdir bin\boot
 if not exist bin\kernel mkdir bin\kernel

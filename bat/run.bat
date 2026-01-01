@@ -1,9 +1,8 @@
 @echo off
 
-set PATH=%~dp0..\dist\bin;%PATH%
+set "ROOT=%~dp0.."
+cd /d "%ROOT%"
 
-echo Starting QEMU...
-
-qemu-system-i386 -drive format=raw,file=..\src\peltOS.img
+qemu-system-i386 -boot a -fda bin/peltOS.img
 
 pause

@@ -21,10 +21,9 @@ Before running the scripts, ensure you have the following installed and added to
 * **NASM** (Assembler)
 * **QEMU** (Emulator)
 * **i686-elf-gcc** (Cross-Compiler)
-* **Make** (Build Tool) (Optional)
 
 ## How to use it
-All automation scripts are located in the `bat/` folder or handled via the `Makefile`.
+All automation scripts are located in the `bat/` folder.
 
 Open a Command Prompt, navigate to the root of the project, and run:
 

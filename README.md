@@ -15,12 +15,7 @@ initializes primary hardware structures, and prepares the display for user inter
 * **VGA Text-Mode Driver**: Custom driver supporting an 80 x 25 terminal with scrolling and color support.
 * **GDT & Stack Setup**: Properly initialized Global Descriptor Table and kernel stack for stable C execution.
 
-## If you wish to try it out
-### Requirements
-Before running the scripts, ensure you have the following installed and added to your system PATH:
-* **NASM** (Assembler)
-* **QEMU** (Emulator)
-* **i686-elf-gcc** (Cross-Compiler)
+* **Built-in tools: **NASM**, (Assembler) **QEMU** (Emulator), **i686-elf-gcc** (Cross-Compiler)**
 
 ## How to use it
 All automation scripts are located in the `bat/` folder.

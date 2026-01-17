@@ -1,6 +1,3 @@
-<img width="2160" height="1620" alt="image" src="https://github.com/user-attachments/assets/fa1debd2-15df-48c8-ab5f-d27c3d4fbd2c" />
-
-
 # **PeltOS**
 This is PeltOS, a custom-built operating system focused on low-level hardware interaction
 and kernel development. It currently serves as a foundational environment, booting directly

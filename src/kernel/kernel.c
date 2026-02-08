@@ -2,6 +2,7 @@
 #include <get_char.h>
 #include <keyboard.h>
 #include <vga.h>
+#include <delay.h>
 
 void main() {
     clear_screen();
@@ -17,6 +18,7 @@ void main() {
     printk("----------------------------------------------");
     printk("\n-># ");
     while(1) {
+        delay(100);
         check_scancode();
         update_cursor(cursor_x, cursor_y);
     }

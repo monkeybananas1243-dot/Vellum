@@ -3,6 +3,6 @@
 set "ROOT=%~dp0.."
 cd /d "%ROOT%"
 
-qemu-system-i386 -boot a -fda bin/peltOS.img
+qemu-system-i386 -boot a -drive file=bin/peltOS.img,format=raw,if=floppy
 
 pause

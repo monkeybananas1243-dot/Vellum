@@ -1,6 +1,7 @@
 #include <keyboard.h>
 #include <vga.h>
 #include <get_char.h>
+#include <io.h>
 
 const char ascii_table[] = {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
@@ -9,25 +10,35 @@ const char ascii_table[] = {
     'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' '
 };
 
+char command[256];
+int cmd_ptr = 0;
+unsigned char last_scancode = 0;
+
 void check_scancode() {
     unsigned char scancode = get_char();
-    
+
     if (scancode & 0x80) return;
 
-    if (scancode == KEY_UP && cursor_y > 0) {cursor_y--;}
-    else if (scancode == KEY_DOWN && cursor_y < VGA_HEIGHT - 1) {cursor_y++;}
-    else if (scancode == KEY_LEFT && cursor_x > 0) {cursor_x--;}
-    else if (scancode == KEY_RIGHT && cursor_x < VGA_WIDTH - 1) {cursor_x++;}
-
-    else {
-        char letter = ascii_table[scancode];
-        if (letter != 0) {
+    char letter = ascii_table[scancode];
+    if (letter != 0) {
+        if (letter == '\n') {
+            command[cmd_ptr] = '\0';
+            printk("\n");
+            printk(command);
+            printk("\n-># ");
+            
+            for(int i = 0; i < 256; i++) command[i] = 0;
+            cmd_ptr = 0;
+        }
+        else if (cmd_ptr < 254) {
             printk_char(letter);
-            if (letter == '\n') {
-                printk("-># ");
-            }
-            return; 
+            command[cmd_ptr] = letter;
+            cmd_ptr++;
+            command[cmd_ptr] = '\0';
         }
     }
-    update_cursor(cursor_x, cursor_y);
+
+    while (!(inb(0x64) & 1) == 0) {
+        if (inb(0x60) & 0x80) break;
+    }
 }
